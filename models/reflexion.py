@@ -1,10 +1,10 @@
 from database.database import Base
-from sqlalchemy import Column, Text, VARCHAR
+from sqlalchemy import Column, Integer, Text, VARCHAR
 
 
 class Reflexion(Base):
     __tablename__ = "reflexiones"
-    id = Column(VARCHAR(50), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     slug = Column(VARCHAR(100), unique=True, nullable=False)
     title = Column(VARCHAR(255), nullable=False)
     subtitle = Column(VARCHAR(255), nullable=False)

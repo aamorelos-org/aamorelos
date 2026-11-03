@@ -6,6 +6,7 @@ from config import settings
 from database.database import engine
 from routers import (
     areas,
+    auth,
     countries,
     districts,
     events,
@@ -35,6 +36,7 @@ app.add_middleware(
 
 api_router = APIRouter(prefix="/aa")
 
+api_router.include_router(auth.router)
 api_router.include_router(countries.router)
 api_router.include_router(regions.router)
 api_router.include_router(areas.router)

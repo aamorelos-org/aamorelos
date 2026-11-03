@@ -10,6 +10,13 @@ class Settings(BaseSettings):
     db_name: str = Field(..., alias="DB_NAME")
     app_env: str = Field(default="dev", alias="APP_ENV")
     allowed_origins: str = Field(default="*", alias="ALLOWED_ORIGINS")
+    r2_account_id: str = Field(..., alias="R2_ACCOUNT_ID")
+    r2_access_key_id: str = Field(..., alias="R2_ACCESS_KEY_ID")
+    r2_secret_access_key: str = Field(..., alias="R2_SECRET_ACCESS_KEY")
+    r2_bucket_name: str = Field(..., alias="R2_BUCKET_NAME")
+    jwt_secret_key: str = Field(..., alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
+    jwt_access_token_expire_minutes: int = Field(default=60, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
 
     @property
     def database_url(self) -> str:

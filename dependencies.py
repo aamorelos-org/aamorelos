@@ -1,6 +1,10 @@
+from config import settings
+from typing import Any, Dict, Optional
 from database.database import get_db
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from repositories.area_repository import AreaRepository
+from repositories.auth_repository import AuthRepository
 from repositories.country_repository import CountryRepository
 from repositories.district_repository import DistrictRepository
 from repositories.evento_repository import EventoRepository
@@ -14,6 +18,7 @@ from repositories.region_repository import RegionRepository
 from repositories.state_repository import StateRepository
 from services.area_by_state_service import AreaByStateService
 from services.area_service import AreaService
+from services.auth_service import AuthService
 from services.country_service import CountryService
 from services.district_by_state_service import DistrictByStateService
 from services.district_service import DistrictService
@@ -27,7 +32,51 @@ from services.language_service import LanguageService
 from services.reflexion_service import ReflexionService
 from services.region_service import RegionService
 from services.state_service import StateService
+from services.token_service import InvalidAccessTokenError, TokenService
 from sqlalchemy.orm import Session
+
+
+bearer_scheme = HTTPBearer(bearerFormat="JWT", auto_error=False)
+
+
+def create_token_service() -> TokenService:
+    return TokenService(
+        secret_key=settings.jwt_secret_key,
+        algorithm=settings.jwt_algorithm,
+        expire_minutes=settings.jwt_access_token_expire_minutes,
+    )
+
+
+def get_current_access_token(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> Dict[str, Any]:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Falta el token de autenticación",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = credentials.credentials.strip()
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Falta el token de autenticación",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    try:
+        return create_token_service().verify_access_token(token)
+    except InvalidAccessTokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de autenticación inválido o expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+
+def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
+    return AuthService(AuthRepository(db), create_token_service())
 
 
 def get_country_service(db: Session = Depends(get_db)) -> CountryService:

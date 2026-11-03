@@ -10,6 +10,7 @@ from models.group_gender import GroupGender
 from models.group import Group
 from models.evento import Evento
 from models.reflexion import Reflexion
+from models.usuario import Usuario, HistorialLogin
 
 __all__ = [
     "Country",
@@ -24,4 +25,6 @@ __all__ = [
     "Group",
     "Evento",
     "Reflexion",
+    "Usuario",
+    "HistorialLogin",
 ]
