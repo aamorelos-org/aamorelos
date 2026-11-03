@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(..., alias="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(default=60, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
+    login_max_failed_attempts: int = Field(default=5, alias="LOGIN_MAX_FAILED_ATTEMPTS")
+    login_lockout_window_minutes: int = Field(default=15, alias="LOGIN_LOCKOUT_WINDOW_MINUTES")
+    login_ip_max_attempts: int = Field(default=20, alias="LOGIN_IP_MAX_ATTEMPTS")
+    login_ip_window_minutes: int = Field(default=15, alias="LOGIN_IP_WINDOW_MINUTES")
 
     @property
     def database_url(self) -> str:

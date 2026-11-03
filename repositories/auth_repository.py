@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import models
@@ -20,6 +21,22 @@ class AuthRepository:
             )
             .first()
         )
+
+    def count_recent_failures(
+        self,
+        usuario_id: int,
+        ip_address: Optional[str],
+        window_minutes: int,
+    ) -> int:
+        since = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+        query = self._db.query(func.count(models.HistorialLogin.id)).filter(
+            models.HistorialLogin.usuario_id == usuario_id,
+            models.HistorialLogin.exitoso.is_(False),
+            models.HistorialLogin.fecha_login >= since,
+        )
+        if ip_address:
+            query = query.filter(models.HistorialLogin.ip_address == ip_address)
+        return query.scalar() or 0
 
     def registrar_login(
         self,

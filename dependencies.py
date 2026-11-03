@@ -29,6 +29,7 @@ from services.group_gender_service import GroupGenderService
 from services.group_service import GroupService
 from services.group_type_service import GroupTypeService
 from services.language_service import LanguageService
+from services.login_rate_limiter import LoginRateLimiter
 from services.reflexion_service import ReflexionService
 from services.region_service import RegionService
 from services.state_service import StateService
@@ -37,6 +38,12 @@ from sqlalchemy.orm import Session
 
 
 bearer_scheme = HTTPBearer(bearerFormat="JWT", auto_error=False)
+
+# Singleton del proceso: comparte el contador entre requests del mismo worker.
+login_rate_limiter = LoginRateLimiter(
+    max_attempts=settings.login_ip_max_attempts,
+    window_minutes=settings.login_ip_window_minutes,
+)
 
 
 def create_token_service() -> TokenService:
@@ -76,7 +83,13 @@ def get_current_access_token(
 
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
-    return AuthService(AuthRepository(db), create_token_service())
+    return AuthService(
+        AuthRepository(db),
+        create_token_service(),
+        login_rate_limiter,
+        max_failed_attempts=settings.login_max_failed_attempts,
+        lockout_window_minutes=settings.login_lockout_window_minutes,
+    )
 
 
 def get_country_service(db: Session = Depends(get_db)) -> CountryService:
