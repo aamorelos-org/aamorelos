@@ -8,12 +8,9 @@ from schemas.reflexion import (
     ReflexionListResponseSchema,
 )
 from services.reflexion_service import (
-    ReflexionAlreadyExistsError,
     ReflexionNotFoundError,
-    ReflexionPersistenceError,
     ReflexionService,
 )
-from services.r2_storage_service import R2StorageError
 
 router = APIRouter(prefix="/api/v1/reflexiones", tags=["Reflexiones"])
 
@@ -73,20 +70,4 @@ def create_reflection(
     payload: ReflexionCreateSchema,
     service: ReflexionService = Depends(get_reflexion_service),
 ) -> Dict[str, Any]:
-    try:
-        return service.create_reflexion(payload)
-    except ReflexionAlreadyExistsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Ya existe una reflexión con ese slug",
-        ) from exc
-    except R2StorageError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="No se pudo subir la imagen a Cloudflare R2",
-        ) from exc
-    except ReflexionPersistenceError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No se pudo guardar la reflexión",
-        ) from exc
+    return service.create_reflexion(payload)

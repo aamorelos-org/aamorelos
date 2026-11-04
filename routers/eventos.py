@@ -1,18 +1,13 @@
 from typing import Any, Dict
 from dependencies import get_current_access_token, get_evento_service
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from schemas.evento import (
     EventoCreateResponseSchema,
     EventoCreateSchema,
     EventoDetailResponseSchema,
     EventoListResponseSchema,
 )
-from services.evento_service import (
-    EventoAlreadyExistsError,
-    EventoPersistenceError,
-    EventoService,
-)
-from services.r2_storage_service import R2StorageError
+from services.evento_service import EventoService
 
 router = APIRouter(prefix="/api/v1/eventos", tags=["Eventos"])
 
@@ -54,23 +49,7 @@ def create_event(
     payload: EventoCreateSchema,
     service: EventoService = Depends(get_evento_service),
 ) -> Dict[str, Any]:
-    try:
-        return service.create_evento(payload)
-    except EventoAlreadyExistsError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Ya existe un evento con ese slug",
-        ) from exc
-    except R2StorageError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="No se pudo subir la imagen a Cloudflare R2",
-        ) from exc
-    except EventoPersistenceError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No se pudo guardar el evento",
-        ) from exc
+    return service.create_evento(payload)
 
 
 @router.get(

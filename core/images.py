@@ -14,11 +14,17 @@ class InvalidImageFormatError(ValueError):
     """La imagen no está en el formato esperado (WebP)."""
 
 
+class ImageTooLargeError(ValueError):
+    """La imagen excede el tamaño máximo permitido."""
+
+
 _WEBP_RIFF_OFFSET = 0
 _WEBP_FORMAT_OFFSET = 8
 _WEBP_MIN_BYTES = 12
 _RIFF_MAGIC = b"RIFF"
 _WEBP_MAGIC = b"WEBP"
+
+MAX_IMAGE_BYTES = 1024 * 1024  # 1 MB
 
 
 def decode_base64_image(value: str) -> bytes:
@@ -44,6 +50,14 @@ def decode_base64_image(value: str) -> bytes:
     if not image_bytes:
         raise InvalidBase64ImageError("La imagen no contiene datos")
 
+    return validate_image_size(image_bytes)
+
+
+def validate_image_size(image_bytes: bytes, max_bytes: int = MAX_IMAGE_BYTES) -> bytes:
+    """Valida que la imagen no exceda el tamaño máximo permitido (por defecto 1 MB)."""
+    if len(image_bytes) > max_bytes:
+        max_mb = max_bytes // (1024 * 1024)
+        raise ImageTooLargeError(f"La imagen excede el tamaño máximo de {max_mb} MB")
     return image_bytes
 
 
