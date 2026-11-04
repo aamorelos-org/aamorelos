@@ -1,18 +1,35 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from core.images import decode_base64_image, InvalidBase64ImageError
+from core.images import (
+    InvalidBase64ImageError,
+    InvalidImageFormatError,
+    decode_and_validate_webp,
+)
+from core.slugs import validate_slogan
+
+
+class ReflexionListItemSchema(BaseModel):
+    id: int
+    slogan: str
+    titulo: str
+    subtitulo: str
+    imagen: str
+    alt: str
+    url: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReflexionResponseSchema(BaseModel):
     id: int
-    slug: str
-    title: str
-    subtitle: str
-    image: str
+    slogan: str
+    titulo: str
+    subtitulo: str
+    imagen: str
     alt: str
     url: str
-    description: str
+    descripcion: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -20,45 +37,32 @@ class ReflexionResponseSchema(BaseModel):
 class ReflexionListResponseSchema(BaseModel):
     ok: bool
     total_registros: int
-    data: list[ReflexionResponseSchema]
+    data: list[ReflexionListItemSchema]
+
+
+class ReflexionDetailResponseSchema(BaseModel):
+    ok: bool
+    data: ReflexionResponseSchema
 
 
 class ReflexionCreateSchema(BaseModel):
-    slug: str = Field(..., min_length=1, max_length=100)
-    title: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
-    subtitle: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
-    image: str = Field(..., min_length=1)
-    description: str = Field(..., min_length=1, max_length=10000, strip_whitespace=True)
+    slogan: str = Field(..., min_length=1, max_length=100)
+    titulo: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
+    subtitulo: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
+    imagen: str = Field(..., min_length=1)
+    descripcion: str = Field(..., min_length=1, max_length=10000, strip_whitespace=True)
 
-    @field_validator("slug")
+    @field_validator("slogan")
     @classmethod
-    def validate_slug(cls, value: str) -> str:
-        slug = value.strip()
-        lowered = slug.lower()
+    def validate_slogan(cls, value: str) -> str:
+        return validate_slogan(value)
 
-        if not slug:
-            raise ValueError("El slug no puede estar vacío")
-
-        if "." in slug:
-            raise ValueError('El slug no puede contener "."')
-
-        if ".web" in lowered or "webp" in lowered:
-            raise ValueError('El slug no puede contener ".web" ni "webp"')
-
-        if any(char not in "abcdefghijklmnopqrstuvwxyz0123456789_-" for char in lowered):
-            raise ValueError("El slug solo puede contener minúsculas, números, guiones y guiones bajos")
-
-        if slug != lowered:
-            raise ValueError("El slug debe estar en minúsculas")
-
-        return slug
-
-    @field_validator("image")
+    @field_validator("imagen")
     @classmethod
-    def validate_image(cls, value: str) -> str:
+    def validate_imagen(cls, value: str) -> str:
         try:
-            decode_base64_image(value)
-        except InvalidBase64ImageError as exc:
+            decode_and_validate_webp(value)
+        except (InvalidBase64ImageError, InvalidImageFormatError) as exc:
             raise ValueError(str(exc)) from exc
         return value.strip()
 

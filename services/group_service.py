@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 
 from repositories.group_repository import GroupRepository
-from schemas.group import GroupResponseSchema
+from schemas.group import GroupEnrichedResponseSchema
 
 
 class GroupService:
@@ -10,34 +10,34 @@ class GroupService:
 
     def get_filtered(
         self,
-        municipality_id: str,
-        type_id: Optional[int] = None,
-        language_id: Optional[int] = None,
-        gender_id: Optional[int] = None,
-        smoking_allowed: Optional[int] = None,
+        municipio_id: str,
+        tipo_id: Optional[int] = None,
+        lengua_id: Optional[int] = None,
+        genero_id: Optional[int] = None,
+        permite_fumar: Optional[int] = None,
         search: Optional[str] = None,
         skip: int = 0,
         limit: int = 100,
     ) -> Dict[str, Any]:
         groups = self.repository.get_filtered(
-            municipality_id=municipality_id,
-            type_id=type_id,
-            language_id=language_id,
-            gender_id=gender_id,
-            smoking_allowed=smoking_allowed,
+            municipio_id=municipio_id,
+            tipo_id=tipo_id,
+            lengua_id=lengua_id,
+            genero_id=genero_id,
+            permite_fumar=permite_fumar,
             search=search,
             skip=skip,
             limit=limit,
         )
         total = self.repository.count_filtered(
-            municipality_id=municipality_id,
-            type_id=type_id,
-            language_id=language_id,
-            gender_id=gender_id,
-            smoking_allowed=smoking_allowed,
+            municipio_id=municipio_id,
+            tipo_id=tipo_id,
+            lengua_id=lengua_id,
+            genero_id=genero_id,
+            permite_fumar=permite_fumar,
             search=search,
         )
-        data = [GroupResponseSchema.from_model(g).model_dump() for g in groups]
+        data = [GroupEnrichedResponseSchema.from_model(g).model_dump() for g in groups]
         return {
             "ok": True,
             "total_registros": total,

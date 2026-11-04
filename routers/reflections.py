@@ -4,16 +4,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from schemas.reflexion import (
     ReflexionCreateResponseSchema,
     ReflexionCreateSchema,
+    ReflexionDetailResponseSchema,
     ReflexionListResponseSchema,
 )
 from services.reflexion_service import (
     ReflexionAlreadyExistsError,
+    ReflexionNotFoundError,
     ReflexionPersistenceError,
     ReflexionService,
 )
 from services.r2_storage_service import R2StorageError
 
-router = APIRouter(prefix="/api/v1/reflections", tags=["Reflexiones"])
+router = APIRouter(prefix="/api/v1/reflexiones", tags=["Reflexiones"])
 
 
 @router.get("/", response_model=ReflexionListResponseSchema)
@@ -21,8 +23,41 @@ def get_reflections(service: ReflexionService = Depends(get_reflexion_service)) 
     return service.get_all_reflexiones()
 
 
+@router.get(
+    "/{identifier}",
+    response_model=ReflexionDetailResponseSchema,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Reflexión no encontrada"}},
+)
+def get_reflection(
+    identifier: str,
+    service: ReflexionService = Depends(get_reflexion_service),
+) -> Dict[str, Any]:
+    try:
+        return service.get_reflexion_by_identifier(identifier)
+    except ReflexionNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reflexión no encontrada",
+        ) from exc
+
+
+# Se registra con y sin barra final: el frontend envía "/reflexiones/" y
+# FastAPI no redirige porque esa ruta ya coincide con el GET (devolvería 405).
 @router.post(
     "",
+    response_model=ReflexionCreateResponseSchema,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(get_current_access_token)],
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Token faltante, inválido o expirado"},
+        status.HTTP_409_CONFLICT: {"description": "Ya existe una reflexión con ese slug"},
+        422: {"description": "Datos inválidos"},
+        status.HTTP_502_BAD_GATEWAY: {"description": "No se pudo subir la imagen a Cloudflare R2"},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"description": "No se pudo guardar la reflexión"},
+    },
+)
+@router.post(
+    "/",
     response_model=ReflexionCreateResponseSchema,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(get_current_access_token)],

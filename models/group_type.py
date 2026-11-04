@@ -3,6 +3,6 @@ from sqlalchemy import Column, Integer, VARCHAR
 
 
 class GroupType(Base):
-    __tablename__ = "group_types"
+    __tablename__ = "grupos_tipos"
     id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(100), unique=True, nullable=False)
+    nombre = Column(VARCHAR(100), unique=True, nullable=False)

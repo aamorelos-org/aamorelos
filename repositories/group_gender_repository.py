@@ -9,4 +9,4 @@ class GroupGenderRepository:
         self.db = db
 
     def get_all(self) -> List[models.GroupGender]:
-        return self.db.query(models.GroupGender).order_by(models.GroupGender.name).all()
+        return self.db.query(models.GroupGender).order_by(models.GroupGender.nombre).all()

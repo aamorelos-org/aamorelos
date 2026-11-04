@@ -9,4 +9,4 @@ class LanguageRepository:
         self.db = db
 
     def get_all(self) -> List[models.Language]:
-        return self.db.query(models.Language).order_by(models.Language.name).all()
+        return self.db.query(models.Language).order_by(models.Language.nombre).all()

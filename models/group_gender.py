@@ -3,6 +3,6 @@ from sqlalchemy import Column, Integer, VARCHAR
 
 
 class GroupGender(Base):
-    __tablename__ = "group_genders"
+    __tablename__ = "grupos_generos"
     id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(100), unique=True, nullable=False)
+    nombre = Column(VARCHAR(100), unique=True, nullable=False)

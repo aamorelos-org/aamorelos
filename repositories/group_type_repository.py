@@ -9,4 +9,4 @@ class GroupTypeRepository:
         self.db = db
 
     def get_all(self) -> List[models.GroupType]:
-        return self.db.query(models.GroupType).order_by(models.GroupType.name).all()
+        return self.db.query(models.GroupType).order_by(models.GroupType.nombre).all()

@@ -38,8 +38,23 @@ class R2StorageService:
     def reflection_key(slug: str) -> str:
         return f"reflections/{slug}.webp"
 
+    @staticmethod
+    def event_key(slug: str) -> str:
+        return f"events/{slug}.webp"
+
     def upload_reflection_image(self, slug: str, content: bytes) -> str:
-        key = self.reflection_key(slug)
+        return self._upload_image(self.reflection_key(slug), content)
+
+    def delete_reflection_image(self, slug: str) -> None:
+        self._delete_image(self.reflection_key(slug))
+
+    def upload_event_image(self, slug: str, content: bytes) -> str:
+        return self._upload_image(self.event_key(slug), content)
+
+    def delete_event_image(self, slug: str) -> None:
+        self._delete_image(self.event_key(slug))
+
+    def _upload_image(self, key: str, content: bytes) -> str:
         try:
             self.client.put_object(
                 Bucket=self.bucket_name,
@@ -53,8 +68,7 @@ class R2StorageService:
             raise R2StorageError("No se pudo subir la imagen a Cloudflare R2") from exc
         return key
 
-    def delete_reflection_image(self, slug: str) -> None:
-        key = self.reflection_key(slug)
+    def _delete_image(self, key: str) -> None:
         try:
             self.client.delete_object(Bucket=self.bucket_name, Key=key)
         except (BotoCoreError, ClientError):

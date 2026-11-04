@@ -6,7 +6,7 @@ from schemas.catalog import CountryListResponseSchema, StateListResponseSchema
 from services.country_service import CountryService
 from services.state_service import StateService
 
-router = APIRouter(prefix="/api/v1/countries", tags=["Paises"])
+router = APIRouter(prefix="/api/v1/paises", tags=["Paises"])
 
 
 @router.get("/", response_model=CountryListResponseSchema)
@@ -14,11 +14,11 @@ def get_countries(service: CountryService = Depends(get_country_service)) -> Dic
     return service.get_all_countries()
 
 
-@router.get("/{country_id}/states", response_model=StateListResponseSchema)
+@router.get("/{pais_id}/estados", response_model=StateListResponseSchema)
 def get_states_by_country(
-    country_id: str,
+    pais_id: str,
     service: StateService = Depends(get_state_service),
 ) -> Dict[str, Any]:
-    return service.get_states_by_country_id(country_id)
+    return service.get_states_by_country_id(pais_id)
 
 

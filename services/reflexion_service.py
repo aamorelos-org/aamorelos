@@ -5,13 +5,17 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from core.images import decode_base64_image
 from repositories.reflexion_repository import ReflexionRepository
-from schemas.reflexion import ReflexionResponseSchema, ReflexionCreateSchema
+from schemas.reflexion import ReflexionResponseSchema, ReflexionCreateSchema, ReflexionListItemSchema
 from services.r2_storage_service import R2StorageService
 
 logger = logging.getLogger(__name__)
 
 IMAGE_URL_PREFIX = "https://images.aamorelos.org/reflections/"
-PAGE_URL_PREFIX = "pages/reflections/"
+PAGE_URL_PREFIX = "pages/reflexiones/"
+
+
+class ReflexionNotFoundError(Exception):
+    """La reflexión no existe o no está disponible."""
 
 
 class ReflexionAlreadyExistsError(Exception):
@@ -41,50 +45,67 @@ class ReflexionService:
 
     def get_all_reflexiones(self) -> Dict[str, Any]:
         reflexiones = self.repository.get_all()
-        data = [ReflexionResponseSchema.model_validate(r).model_dump() for r in reflexiones]
+        data = [ReflexionListItemSchema.model_validate(r).model_dump() for r in reflexiones]
         return {
             "ok": True,
             "total_registros": len(data),
             "data": data,
         }
 
+    def get_reflexion_by_identifier(self, identifier: str) -> Dict[str, Any]:
+        cleaned = identifier.strip()
+        if not cleaned:
+            raise ReflexionNotFoundError()
+
+        reflexion = self.repository.get_by_slogan(cleaned)
+        if reflexion is None and cleaned.isdigit():
+            reflexion = self.repository.get_by_id(int(cleaned))
+
+        if reflexion is None:
+            raise ReflexionNotFoundError()
+
+        return {
+            "ok": True,
+            "data": ReflexionResponseSchema.model_validate(reflexion).model_dump(),
+        }
+
     def create_reflexion(self, payload: ReflexionCreateSchema) -> Dict[str, Any]:
-        slug = payload.slug
+        slogan = payload.slogan
 
-        if self.repository.get_by_slug(slug) is not None:
-            raise ReflexionAlreadyExistsError(f"Ya existe una reflexión con el slug '{slug}'")
+        if self.repository.get_by_slogan(slogan) is not None:
+            raise ReflexionAlreadyExistsError(f"Ya existe una reflexión con el slug '{slogan}'")
 
-        image_bytes = decode_base64_image(payload.image)
-        image = f"{IMAGE_URL_PREFIX}{slug}.webp"
-        alt = payload.title
-        url = f"{PAGE_URL_PREFIX}{slug}.php"
+        image_bytes = decode_base64_image(payload.imagen)
+        imagen = f"{IMAGE_URL_PREFIX}{slogan}.webp"
+        alt = payload.titulo
+        url = f"{PAGE_URL_PREFIX}{slogan}.php"
 
         if len(url) > 1000:
             raise ValueError("La URL generada excede el máximo de 1000 caracteres")
 
         storage = self._get_storage()
-        storage.upload_reflection_image(slug, image_bytes)
+        storage.upload_reflection_image(slogan, image_bytes)
 
         try:
             reflexion = self.repository.create(
-                slug=slug,
-                title=payload.title,
-                subtitle=payload.subtitle,
-                image=image,
+                slogan=slogan,
+                titulo=payload.titulo,
+                subtitulo=payload.subtitulo,
+                imagen=imagen,
                 alt=alt,
                 url=url,
-                description=payload.description,
+                descripcion=payload.descripcion,
             )
         except IntegrityError as exc:
-            storage.delete_reflection_image(slug)
-            raise ReflexionAlreadyExistsError(f"Ya existe una reflexión con el slug '{slug}'") from exc
+            storage.delete_reflection_image(slogan)
+            raise ReflexionAlreadyExistsError(f"Ya existe una reflexión con el slug '{slogan}'") from exc
         except SQLAlchemyError as exc:
-            storage.delete_reflection_image(slug)
-            logger.exception("No se pudo guardar la reflexión %s", slug)
+            storage.delete_reflection_image(slogan)
+            logger.exception("No se pudo guardar la reflexión %s", slogan)
             raise ReflexionPersistenceError("No se pudo guardar la reflexión") from exc
         except Exception:
-            storage.delete_reflection_image(slug)
-            logger.exception("Error inesperado al guardar la reflexión %s", slug)
+            storage.delete_reflection_image(slogan)
+            logger.exception("Error inesperado al guardar la reflexión %s", slogan)
             raise
 
         data = ReflexionResponseSchema.model_validate(reflexion).model_dump()

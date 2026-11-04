@@ -3,6 +3,6 @@ from sqlalchemy import Column, VARCHAR
 
 
 class Region(Base):
-    __tablename__ = "regions"
+    __tablename__ = "regiones"
     id = Column(VARCHAR(10), primary_key=True)
-    name = Column(VARCHAR(100), nullable=False)
+    nombre = Column(VARCHAR(100), nullable=False)

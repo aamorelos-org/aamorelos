@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 from sqlalchemy.orm import Session
 
 import models
@@ -24,14 +25,14 @@ class DistrictRepository:
             .all()
         )
 
-    def get_by_municipality_ids(self, municipality_ids: List[str]) -> List[models.District]:
-        if not municipality_ids:
+    def get_by_municipio_ids(self, municipio_ids: List[str]) -> List[models.District]:
+        if not municipio_ids:
             return []
         return (
             self.db.query(models.District)
-            .filter(models.District.municipality_id.in_(municipality_ids))
+            .filter(models.District.municipio_id.in_(municipio_ids))
             .all()
         )
 
-    def get_by_id(self, district_id: str) -> Optional[models.District]:
-        return self.db.query(models.District).filter(models.District.id == district_id).first()
+    def get_by_id(self, distrito_id: str) -> Optional[models.District]:
+        return self.db.query(models.District).filter(models.District.id == distrito_id).first()

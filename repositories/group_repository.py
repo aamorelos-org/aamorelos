@@ -10,75 +10,75 @@ class GroupRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_district_id(self, district_id: str) -> List[models.Group]:
+    def get_by_distrito_id(self, distrito_id: str) -> List[models.Group]:
         return (
             self.db.query(models.Group)
             .options(
-                selectinload(models.Group.group_type),
-                selectinload(models.Group.language),
-                selectinload(models.Group.gender),
-                selectinload(models.Group.municipality),
-                selectinload(models.Group.district),
+                selectinload(models.Group.grupo_tipo),
+                selectinload(models.Group.lengua),
+                selectinload(models.Group.genero),
+                selectinload(models.Group.municipio),
+                selectinload(models.Group.distrito),
             )
-            .filter(models.Group.district_id == district_id)
+            .filter(models.Group.distrito_id == distrito_id)
             .all()
         )
 
-    def get_by_municipality_ids(self, municipality_ids: List[str]) -> List[models.Group]:
-        if not municipality_ids:
+    def get_by_municipio_ids(self, municipio_ids: List[str]) -> List[models.Group]:
+        if not municipio_ids:
             return []
         return (
             self.db.query(models.Group)
             .options(
-                selectinload(models.Group.group_type),
-                selectinload(models.Group.language),
-                selectinload(models.Group.gender),
-                selectinload(models.Group.municipality),
-                selectinload(models.Group.district),
+                selectinload(models.Group.grupo_tipo),
+                selectinload(models.Group.lengua),
+                selectinload(models.Group.genero),
+                selectinload(models.Group.municipio),
+                selectinload(models.Group.distrito),
             )
-            .filter(models.Group.municipality_id.in_(municipality_ids))
+            .filter(models.Group.municipio_id.in_(municipio_ids))
             .all()
         )
 
     def get_filtered(
         self,
-        municipality_id: str,
-        type_id: Optional[int] = None,
-        language_id: Optional[int] = None,
-        gender_id: Optional[int] = None,
-        smoking_allowed: Optional[int] = None,
+        municipio_id: str,
+        tipo_id: Optional[int] = None,
+        lengua_id: Optional[int] = None,
+        genero_id: Optional[int] = None,
+        permite_fumar: Optional[int] = None,
         search: Optional[str] = None,
         skip: int = 0,
         limit: int = 100,
     ) -> List[models.Group]:
         query = self.db.query(models.Group).options(
-            selectinload(models.Group.group_type),
-            selectinload(models.Group.language),
-            selectinload(models.Group.gender),
-            selectinload(models.Group.municipality),
-            selectinload(models.Group.district),
+            selectinload(models.Group.grupo_tipo),
+            selectinload(models.Group.lengua),
+            selectinload(models.Group.genero),
+            selectinload(models.Group.municipio),
+            selectinload(models.Group.distrito),
         )
 
-        query = query.filter(models.Group.municipality_id == municipality_id)
+        query = query.filter(models.Group.municipio_id == municipio_id)
 
-        if type_id is not None:
-            query = query.filter(models.Group.type_id == type_id)
-        if language_id is not None:
-            query = query.filter(models.Group.language_id == language_id)
-        if gender_id is not None:
-            query = query.filter(models.Group.gender_id == gender_id)
-        if smoking_allowed is not None:
-            query = query.filter(models.Group.smoking_allowed == smoking_allowed)
+        if tipo_id is not None:
+            query = query.filter(models.Group.tipo_id == tipo_id)
+        if lengua_id is not None:
+            query = query.filter(models.Group.lengua_id == lengua_id)
+        if genero_id is not None:
+            query = query.filter(models.Group.genero_id == genero_id)
+        if permite_fumar is not None:
+            query = query.filter(models.Group.permite_fumar == permite_fumar)
 
         if search is not None and search.strip() != "":
             search_term = search.strip()
             search_filter = or_(
-                models.Group.address.ilike(f"%{search_term}%"),
-                models.Group.neighborhood.ilike(f"%{search_term}%"),
-                models.Group.postal_code.ilike(f"%{search_term}%"),
-                models.Group.reference.ilike(f"%{search_term}%"),
-                models.Group.locality.ilike(f"%{search_term}%"),
-                models.Group.name.ilike(f"%{search_term}%"),
+                models.Group.direccion.ilike(f"%{search_term}%"),
+                models.Group.vecinos.ilike(f"%{search_term}%"),
+                models.Group.codigo_postal.ilike(f"%{search_term}%"),
+                models.Group.referencias.ilike(f"%{search_term}%"),
+                models.Group.localidad.ilike(f"%{search_term}%"),
+                models.Group.nombre.ilike(f"%{search_term}%"),
             )
             query = query.filter(search_filter)
 
@@ -93,35 +93,35 @@ class GroupRepository:
 
     def count_filtered(
         self,
-        municipality_id: str,
-        type_id: Optional[int] = None,
-        language_id: Optional[int] = None,
-        gender_id: Optional[int] = None,
-        smoking_allowed: Optional[int] = None,
+        municipio_id: str,
+        tipo_id: Optional[int] = None,
+        lengua_id: Optional[int] = None,
+        genero_id: Optional[int] = None,
+        permite_fumar: Optional[int] = None,
         search: Optional[str] = None,
     ) -> int:
         query = self.db.query(models.Group)
 
-        query = query.filter(models.Group.municipality_id == municipality_id)
+        query = query.filter(models.Group.municipio_id == municipio_id)
 
-        if type_id is not None:
-            query = query.filter(models.Group.type_id == type_id)
-        if language_id is not None:
-            query = query.filter(models.Group.language_id == language_id)
-        if gender_id is not None:
-            query = query.filter(models.Group.gender_id == gender_id)
-        if smoking_allowed is not None:
-            query = query.filter(models.Group.smoking_allowed == smoking_allowed)
+        if tipo_id is not None:
+            query = query.filter(models.Group.tipo_id == tipo_id)
+        if lengua_id is not None:
+            query = query.filter(models.Group.lengua_id == lengua_id)
+        if genero_id is not None:
+            query = query.filter(models.Group.genero_id == genero_id)
+        if permite_fumar is not None:
+            query = query.filter(models.Group.permite_fumar == permite_fumar)
 
         if search is not None and search.strip() != "":
             search_term = search.strip()
             search_filter = or_(
-                models.Group.address.ilike(f"%{search_term}%"),
-                models.Group.neighborhood.ilike(f"%{search_term}%"),
-                models.Group.postal_code.ilike(f"%{search_term}%"),
-                models.Group.reference.ilike(f"%{search_term}%"),
-                models.Group.locality.ilike(f"%{search_term}%"),
-                models.Group.name.ilike(f"%{search_term}%"),
+                models.Group.direccion.ilike(f"%{search_term}%"),
+                models.Group.vecinos.ilike(f"%{search_term}%"),
+                models.Group.codigo_postal.ilike(f"%{search_term}%"),
+                models.Group.referencias.ilike(f"%{search_term}%"),
+                models.Group.localidad.ilike(f"%{search_term}%"),
+                models.Group.nombre.ilike(f"%{search_term}%"),
             )
             query = query.filter(search_filter)
 

@@ -9,7 +9,7 @@ from routers import (
     auth,
     countries,
     districts,
-    events,
+    eventos,
     group_genders,
     group_types,
     groups,
@@ -46,7 +46,7 @@ api_router.include_router(group_genders.router)
 api_router.include_router(languages.router)
 api_router.include_router(group_types.router)
 api_router.include_router(groups.router)
-api_router.include_router(events.router)
+api_router.include_router(eventos.router)
 api_router.include_router(reflections.router)
 
 app.include_router(api_router)

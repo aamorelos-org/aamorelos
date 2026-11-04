@@ -15,5 +15,12 @@ class AreaRepository:
             .all()
         )
 
+    def get_by_municipio_id(self, municipio_id: str) -> List[models.Area]:
+        return (
+            self.db.query(models.Area)
+            .filter(models.Area.municipio_id == municipio_id)
+            .all()
+        )
+
     def get_by_id(self, area_id: str) -> Optional[models.Area]:
         return self.db.query(models.Area).filter(models.Area.id == area_id).first()

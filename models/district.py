@@ -1,25 +1,23 @@
 ﻿from database.database import Base
-from sqlalchemy import Column, Date, ForeignKey, Integer, TEXT, VARCHAR
+from sqlalchemy import Column, Date, ForeignKey, Integer, Text, VARCHAR
 from sqlalchemy.orm import relationship
 
 
 class District(Base):
-    __tablename__ = "districts"
+    __tablename__ = "distritos"
     id = Column(VARCHAR(50), primary_key=True)
     area_id = Column(VARCHAR(10), ForeignKey("areas.id"), nullable=False)
-    municipality_id = Column(
-        VARCHAR(10), ForeignKey("municipalities.id"), nullable=False
-    )
-    name = Column(TEXT, nullable=False)
-    district_number = Column(Integer)
-    creation_date = Column(Date)
-    address = Column(TEXT)
-    neighborhood = Column(VARCHAR(100))
-    postal_code = Column(VARCHAR(10))
-    reference = Column(TEXT)
-    phone = Column(VARCHAR(50))
-    service_hours = Column(TEXT)
-    is_active = Column(Integer)
+    municipio_id = Column(VARCHAR(10), ForeignKey("municipios.id"), nullable=False)
+    nombre = Column(Text, nullable=False)
+    distrito_numero = Column(Integer)
+    fecha_creacion = Column(Date)
+    direccion = Column(Text)
+    vecinos = Column(VARCHAR(100))
+    codigo_postal = Column(VARCHAR(10))
+    referencia = Column(Text)
+    telefono = Column(VARCHAR(50))
+    servicio_horas = Column(Text)
+    es_activo = Column(Integer)
 
-    municipality = relationship("Municipality")
+    municipio = relationship("Municipality")
     area = relationship("Area")

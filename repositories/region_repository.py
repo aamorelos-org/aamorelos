@@ -9,7 +9,7 @@ class RegionRepository:
         self.db = db
 
     def get_all(self) -> List[models.Region]:
-        return self.db.query(models.Region).order_by(models.Region.name).all()
+        return self.db.query(models.Region).order_by(models.Region.nombre).all()
 
     def get_by_id(self, region_id: str) -> Optional[models.Region]:
         return self.db.query(models.Region).filter(models.Region.id == region_id).first()

@@ -9,33 +9,33 @@ class ReflexionRepository:
         self.db = db
 
     def get_all(self) -> List[models.Reflexion]:
-        return self.db.query(models.Reflexion).all()
+        return self.db.query(models.Reflexion).order_by(models.Reflexion.id).all()
 
     def get_by_id(self, reflexion_id: int) -> Optional[models.Reflexion]:
         return self.db.query(models.Reflexion).filter(models.Reflexion.id == reflexion_id).first()
 
-    def get_by_slug(self, slug: str) -> Optional[models.Reflexion]:
-        return self.db.query(models.Reflexion).filter(models.Reflexion.slug == slug).first()
+    def get_by_slogan(self, slogan: str) -> Optional[models.Reflexion]:
+        return self.db.query(models.Reflexion).filter(models.Reflexion.slogan == slogan).first()
 
     def create(
         self,
         *,
-        slug: str,
-        title: str,
-        subtitle: str,
-        image: str,
+        slogan: str,
+        titulo: str,
+        subtitulo: str,
+        imagen: str,
         alt: str,
         url: str,
-        description: str,
+        descripcion: str,
     ) -> models.Reflexion:
         reflexion = models.Reflexion(
-            slug=slug,
-            title=title,
-            subtitle=subtitle,
-            image=image,
+            slogan=slogan,
+            titulo=titulo,
+            subtitulo=subtitulo,
+            imagen=imagen,
             alt=alt,
             url=url,
-            description=description,
+            descripcion=descripcion,
         )
         self.db.add(reflexion)
         try:

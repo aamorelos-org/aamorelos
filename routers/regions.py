@@ -6,7 +6,7 @@ from schemas.catalog import AreaListResponseSchema, RegionListResponseSchema
 from services.area_service import AreaService
 from services.region_service import RegionService
 
-router = APIRouter(prefix="/api/v1/regions", tags=["Regiones"])
+router = APIRouter(prefix="/api/v1/regiones", tags=["Regiones"])
 
 
 @router.get("/", response_model=RegionListResponseSchema)

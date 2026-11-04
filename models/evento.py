@@ -1,23 +1,26 @@
 from database.database import Base
-from sqlalchemy import Column, Integer, Text, VARCHAR
+from sqlalchemy import CheckConstraint, Column, Integer, Text, VARCHAR
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 
 class Evento(Base):
     __tablename__ = "eventos"
     id = Column(Integer, primary_key=True, autoincrement=True)
     tipo = Column(VARCHAR(50), nullable=False)
-    slug = Column(VARCHAR(100), unique=True, nullable=False)
+    slogan = Column(VARCHAR(100), unique=True, nullable=False)
     url = Column(Text)
-    title = Column(VARCHAR(255), nullable=False)
-    subtitle = Column(VARCHAR(255))
-    image = Column(Text, nullable=False)
+    titulo = Column(VARCHAR(255), nullable=False)
+    subtitulo = Column(VARCHAR(255))
+    imagen = Column(Text, nullable=False)
     alt = Column(VARCHAR(255))
-    footer = Column(VARCHAR(255))
-    epigrafe = Column(Text)
-    kicker = Column(VARCHAR(100))
-    frase_reflexion = Column(Text)
-    paragraphs = Column(JSONB)
-    resumen_fechas = Column(JSONB)
-    contacto = Column(JSONB)
-    bloques_itinerario = Column(JSONB)
+    pie = Column(VARCHAR(255))
+    frases = Column(JSONB)
+    es_activo = Column(VARCHAR(1), nullable=False, server_default="S")
+    username = Column(VARCHAR(100), nullable=False, server_default="SYSTEM")
+
+    aniversario = relationship("Aniversario", back_populates="evento", uselist=False)
+
+    __table_args__ = (
+        CheckConstraint("es_activo IN ('S', 'N')", name="eventos_es_activo_sn_check"),
+    )

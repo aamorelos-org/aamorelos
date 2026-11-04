@@ -3,6 +3,6 @@
 
 class MunicipalitySchema(BaseModel):
     id: str
-    name: str
+    nombre: str
 
     model_config = ConfigDict(from_attributes=True)

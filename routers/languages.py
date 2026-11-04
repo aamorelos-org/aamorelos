@@ -8,6 +8,6 @@ from services.language_service import LanguageService
 router = APIRouter(prefix="/api/v1", tags=["Idiomas"])
 
 
-@router.get("/languages", response_model=CatalogListResponseSchema)
+@router.get("/idiomas", response_model=CatalogListResponseSchema)
 def get_languages(service: LanguageService = Depends(get_language_service)) -> Dict[str, Any]:
     return service.get_all_languages()

@@ -19,20 +19,20 @@ class AreaByStateService:
         self.municipality_repository = municipality_repository
         self.state_repository = state_repository
 
-    def obtener_areas_por_estado(self, state_id: str) -> Dict[str, Any]:
-        state = self.state_repository.get_by_id(state_id)
+    def obtener_areas_por_estado(self, estado_id: str) -> Dict[str, Any]:
+        state = self.state_repository.get_by_id(estado_id)
         if not state:
             raise HTTPException(status_code=404, detail="Estado no encontrado")
 
-        municipalities = self.municipality_repository.get_by_state_id(state_id)
+        municipalities = self.municipality_repository.get_by_estado_id(estado_id)
         result = []
         for municipality in municipalities:
-            areas = self.area_repository.get_by_municipality_id(municipality.id)
+            areas = self.area_repository.get_by_municipio_id(municipality.id)
             for area in areas:
                 result.append(AreaSchema.model_validate(area).model_dump())
         return {
             "ok": True,
-            "state_id": state_id,
+            "estado_id": estado_id,
             "total_registros": len(result),
             "data": result,
         }

@@ -24,5 +24,5 @@ class HistorialLogin(Base):
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False, index=True)
     fecha_login = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
     ip_address = Column(String(45), nullable=True)
-    user_agent = Column(Text, nullable=True)
+    user_agent = Column("usuario_agente", Text, nullable=True)
     exitoso = Column(Boolean, default=True)

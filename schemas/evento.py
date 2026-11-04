@@ -1,32 +1,130 @@
-from typing import Any, Optional
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated, Any, List, Literal, Optional, Union
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from core.images import (
+    InvalidBase64ImageError,
+    InvalidImageFormatError,
+    decode_and_validate_webp,
+)
+from core.slugs import validate_slogan
 
 
-class EventoResponseSchema(BaseModel):
+class EventoListItemSchema(BaseModel):
     id: int
     tipo: str
-    slug: str
+    slogan: str
     url: Optional[str] = None
-    title: str
-    subtitle: Optional[str] = None
-    image: str
+    titulo: str
+    subtitulo: Optional[str] = None
+    imagen: str
     alt: Optional[str] = None
-    footer: Optional[str] = None
-    epigrafe: Optional[str] = None
-    kicker: Optional[str] = None
-    frase_reflexion: Optional[str] = None
+    pie: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class EventoDetailResponseSchema(EventoResponseSchema):
-    paragraphs: Optional[Any] = None
-    resumen_fechas: Optional[Any] = None
-    contacto: Optional[Any] = None
-    bloques_itinerario: Optional[Any] = None
+class EventoResponseSchema(EventoListItemSchema):
+    frases: Optional[Any] = None
+
+
+class AniversarioDiaSchema(BaseModel):
+    dia: str
+    tema: str
+    fecha: str
+    grupos: str
+    numero: str
+    es_junta_publica: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AniversarioSchema(BaseModel):
+    epigrafe: str
+    kicker: str
+    frase_reflexion: str
+    sede: str
+    dias_unidad: str
+    junta_publica: str
+    contacto_nombre: str
+    contacto_telefono: str
+    dias: list[AniversarioDiaSchema] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EventoDetailDataSchema(EventoResponseSchema):
+    aniversario: Optional[AniversarioSchema] = None
 
 
 class EventoListResponseSchema(BaseModel):
     ok: bool
     total_registros: int
-    data: list[EventoResponseSchema]
+    data: list[EventoListItemSchema]
+
+
+class EventoDetailResponseSchema(BaseModel):
+    ok: bool
+    data: EventoDetailDataSchema
+
+
+class EventoDiaCreateSchema(BaseModel):
+    dia: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    tema: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    fecha: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    grupos: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
+    numero: str = Field(..., min_length=1, max_length=2, strip_whitespace=True)
+    es_junta_publica: bool = False
+
+
+class EventoCreateBaseSchema(BaseModel):
+    slogan: str = Field(..., min_length=1, max_length=100)
+    titulo: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
+    subtitulo: Optional[str] = Field(None, max_length=255, strip_whitespace=True)
+    imagen: str = Field(..., min_length=1)
+    pie: Optional[str] = Field(None, max_length=255, strip_whitespace=True)
+
+    @field_validator("slogan")
+    @classmethod
+    def _check_slogan(cls, value: str) -> str:
+        return validate_slogan(value)
+
+    @field_validator("imagen")
+    @classmethod
+    def _check_imagen(cls, value: str) -> str:
+        try:
+            decode_and_validate_webp(value)
+        except (InvalidBase64ImageError, InvalidImageFormatError) as exc:
+            raise ValueError(str(exc)) from exc
+        return value.strip()
+
+
+class InformativoCreateSchema(EventoCreateBaseSchema):
+    tipo: Literal["informativo"]
+    parrafo1: str = Field("", max_length=10000, strip_whitespace=True)
+    parrafo2: str = Field("", max_length=10000, strip_whitespace=True)
+
+
+class AniversarioCreateSchema(EventoCreateBaseSchema):
+    tipo: Literal["aniversario"]
+    epigrafe: str = Field(..., min_length=1, strip_whitespace=True)
+    kicker: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    frase_reflexion: str = Field(..., min_length=1, strip_whitespace=True)
+    sede: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    dias_unidad: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    junta_publica: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    contacto_nombre: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    contacto_telefono: str = Field(..., min_length=1, max_length=100, strip_whitespace=True)
+    dias: List[EventoDiaCreateSchema] = Field(default_factory=list)
+
+
+EventoCreateSchema = Annotated[
+    Union[InformativoCreateSchema, AniversarioCreateSchema],
+    Field(discriminator="tipo"),
+]
+
+
+class EventoCreateResponseSchema(BaseModel):
+    ok: bool
+    mensaje: str
+    data: EventoDetailDataSchema

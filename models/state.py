@@ -3,7 +3,7 @@ from sqlalchemy import Column, ForeignKey, VARCHAR
 
 
 class State(Base):
-    __tablename__ = "states"
+    __tablename__ = "estados"
     id = Column(VARCHAR(10), primary_key=True)
-    country_id = Column(VARCHAR(10), ForeignKey("countries.id"), nullable=False)
-    name = Column(VARCHAR(100), nullable=False)
+    pais_id = Column("estado_id", VARCHAR(10), ForeignKey("paises.id"), nullable=False)
+    nombre = Column(VARCHAR(100), nullable=False)

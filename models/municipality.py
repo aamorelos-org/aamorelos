@@ -1,9 +1,9 @@
 ﻿from database.database import Base
-from sqlalchemy import Column, ForeignKey, Integer, VARCHAR
+from sqlalchemy import Column, ForeignKey, VARCHAR
 
 
 class Municipality(Base):
-    __tablename__ = "municipalities"
+    __tablename__ = "municipios"
     id = Column(VARCHAR(10), primary_key=True)
-    state_id = Column(VARCHAR(10), ForeignKey("states.id"), nullable=False)
-    name = Column(VARCHAR(100), nullable=False)
+    estado_id = Column(VARCHAR(10), ForeignKey("estados.id"), nullable=False)
+    nombre = Column(VARCHAR(100), nullable=False)

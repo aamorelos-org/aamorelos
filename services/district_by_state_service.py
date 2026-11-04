@@ -19,19 +19,19 @@ class DistrictByStateService:
         self.municipality_repository = municipality_repository
         self.state_repository = state_repository
 
-    def obtener_distritos_por_estado(self, state_id: str) -> Dict[str, Any]:
-        state = self.state_repository.get_by_id(state_id)
+    def obtener_distritos_por_estado(self, estado_id: str) -> Dict[str, Any]:
+        state = self.state_repository.get_by_id(estado_id)
         if not state:
             raise HTTPException(status_code=404, detail="Estado no encontrado")
 
-        municipalities = self.municipality_repository.get_by_state_id(state_id)
-        municipality_ids = [m.id for m in municipalities]
+        municipalities = self.municipality_repository.get_by_estado_id(estado_id)
+        municipio_ids = [m.id for m in municipalities]
 
-        districts = self.district_repository.get_by_municipality_ids(municipality_ids)
+        districts = self.district_repository.get_by_municipio_ids(municipio_ids)
         data = [DistrictByStateResponseSchema.from_model(d).model_dump() for d in districts]
         return {
             "ok": True,
-            "state_id": state_id,
+            "estado_id": estado_id,
             "total_registros": len(data),
             "data": data,
         }
