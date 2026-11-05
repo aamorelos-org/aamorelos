@@ -11,6 +11,24 @@ class ReflexionRepository:
     def get_all(self) -> List[models.Reflexion]:
         return self.db.query(models.Reflexion).order_by(models.Reflexion.id).all()
 
+    def get_paginated(self, skip: int = 0, limit: int = 100) -> List[models.Reflexion]:
+        if skip < 0:
+            skip = 0
+        if limit < 1:
+            limit = 100
+        if limit > 500:
+            limit = 500
+        return (
+            self.db.query(models.Reflexion)
+            .order_by(models.Reflexion.id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
+    def count(self) -> int:
+        return self.db.query(models.Reflexion).count()
+
     def get_by_id(self, reflexion_id: int) -> Optional[models.Reflexion]:
         return self.db.query(models.Reflexion).filter(models.Reflexion.id == reflexion_id).first()
 

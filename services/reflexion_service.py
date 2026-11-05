@@ -43,12 +43,15 @@ class ReflexionService:
             )
         return self.storage
 
-    def get_all_reflexiones(self) -> Dict[str, Any]:
-        reflexiones = self.repository.get_all()
+    def get_all_reflexiones(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        reflexiones = self.repository.get_paginated(skip=skip, limit=limit)
+        total = self.repository.count()
         data = [ReflexionListItemSchema.model_validate(r).model_dump() for r in reflexiones]
         return {
             "ok": True,
-            "total_registros": len(data),
+            "total_registros": total,
+            "skip": skip,
+            "limit": limit,
             "data": data,
         }
 

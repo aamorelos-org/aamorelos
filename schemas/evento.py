@@ -60,6 +60,8 @@ class EventoDetailDataSchema(EventoResponseSchema):
 class EventoListResponseSchema(BaseModel):
     ok: bool
     total_registros: int
+    skip: int
+    limit: int
     data: list[EventoListItemSchema]
 
 

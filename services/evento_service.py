@@ -86,12 +86,15 @@ class EventoService:
             )
         return self.storage
 
-    def get_all_eventos(self) -> Dict[str, Any]:
-        eventos = self.repository.get_all()
+    def get_all_eventos(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        eventos = self.repository.get_paginated(skip=skip, limit=limit)
+        total = self.repository.count()
         data = [EventoListItemSchema.model_validate(e).model_dump() for e in eventos]
         return {
             "ok": True,
-            "total_registros": len(data),
+            "total_registros": total,
+            "skip": skip,
+            "limit": limit,
             "data": data,
         }
 

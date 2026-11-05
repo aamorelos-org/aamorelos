@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from dependencies import get_current_access_token, get_reflexion_service
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from schemas.reflexion import (
     ReflexionCreateResponseSchema,
     ReflexionCreateSchema,
@@ -16,8 +16,12 @@ router = APIRouter(prefix="/api/v1/reflexiones", tags=["Reflexiones"])
 
 
 @router.get("/", response_model=ReflexionListResponseSchema)
-def get_reflections(service: ReflexionService = Depends(get_reflexion_service)) -> Dict[str, Any]:
-    return service.get_all_reflexiones()
+def get_reflections(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    service: ReflexionService = Depends(get_reflexion_service),
+) -> Dict[str, Any]:
+    return service.get_all_reflexiones(skip=skip, limit=limit)
 
 
 @router.get(

@@ -37,6 +37,8 @@ class ReflexionResponseSchema(BaseModel):
 class ReflexionListResponseSchema(BaseModel):
     ok: bool
     total_registros: int
+    skip: int
+    limit: int
     data: list[ReflexionListItemSchema]
 
 

@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from dependencies import get_current_access_token, get_evento_service
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from schemas.evento import (
     EventoCreateResponseSchema,
     EventoCreateSchema,
@@ -13,8 +13,12 @@ router = APIRouter(prefix="/api/v1/eventos", tags=["Eventos"])
 
 
 @router.get("/", response_model=EventoListResponseSchema)
-def get_events(service: EventoService = Depends(get_evento_service)) -> Dict[str, Any]:
-    return service.get_all_eventos()
+def get_events(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    service: EventoService = Depends(get_evento_service),
+) -> Dict[str, Any]:
+    return service.get_all_eventos(skip=skip, limit=limit)
 
 
 # Se registra con y sin barra final: el frontend envía "/eventos/" y
