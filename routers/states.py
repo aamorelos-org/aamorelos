@@ -4,7 +4,7 @@ from dependencies import get_area_by_state_service, get_district_by_state_servic
 from fastapi import APIRouter, Depends
 from schemas.catalog import AreaListResponseSchema
 from schemas.district import DistrictByStateListResponseSchema
-from schemas.group import GroupByStateListResponseSchema
+from schemas.group import GroupByStateListResponseSchema, GroupEnrichedResponseSchema
 from services.area_by_state_service import AreaByStateService
 from services.district_by_state_service import DistrictByStateService
 from services.group_by_state_service import GroupByStateService
@@ -34,3 +34,12 @@ def get_groups_by_state(
     service: GroupByStateService = Depends(get_group_by_state_service),
 ) -> Dict[str, Any]:
     return service.obtener_grupos_por_estado(estado_id)
+
+
+@router.get("/{estado_id}/grupos/{grupo_id}", response_model=GroupEnrichedResponseSchema)
+def get_group_by_state(
+    estado_id: str,
+    grupo_id: str,
+    service: GroupByStateService = Depends(get_group_by_state_service),
+) -> Dict[str, Any]:
+    return service.obtener_grupo_por_id(grupo_id)

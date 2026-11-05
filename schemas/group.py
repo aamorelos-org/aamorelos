@@ -78,9 +78,35 @@ class GroupByDistrictListResponseSchema(BaseModel):
     data: list[GroupEnrichedResponseSchema]
 
 
+class GroupListItemSchema(BaseModel):
+    id: str
+    nombre: str
+    distrito_id: str
+    municipio: Optional[str] = None
+    vecinos: Optional[str] = None
+    tipo: Optional[str] = None
+    genero: Optional[str] = None
+    lengua: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_model(cls, g) -> "GroupListItemSchema":
+        return cls(
+            id=str(g.id),
+            nombre=g.nombre,
+            distrito_id=str(g.distrito_id),
+            municipio=getattr(getattr(g, "municipio", None), "nombre", None),
+            vecinos=g.vecinos,
+            tipo=getattr(getattr(g, "grupo_tipo", None), "nombre", None),
+            genero=getattr(getattr(g, "genero", None), "nombre", None),
+            lengua=getattr(getattr(g, "lengua", None), "nombre", None),
+        )
+
+
 class GroupByStateListResponseSchema(BaseModel):
     ok: bool
     estado_id: str
     distrito_id: Optional[str] = None
     total_registros: int
-    data: list[GroupEnrichedResponseSchema]
+    data: list[GroupListItemSchema]

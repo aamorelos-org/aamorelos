@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from repositories.district_repository import DistrictRepository
 from repositories.municipality_repository import MunicipalityRepository
 from repositories.state_repository import StateRepository
-from schemas.district import DistrictByStateResponseSchema
+from schemas.district import DistrictByStateResponseSchema, DistrictDetailResponseSchema, DistrictListItemSchema
 
 
 class DistrictByStateService:
@@ -28,10 +28,25 @@ class DistrictByStateService:
         municipio_ids = [m.id for m in municipalities]
 
         districts = self.district_repository.get_by_municipio_ids(municipio_ids)
-        data = [DistrictByStateResponseSchema.from_model(d).model_dump() for d in districts]
+        data = [DistrictListItemSchema.from_model(d).model_dump() for d in districts]
         return {
             "ok": True,
             "estado_id": estado_id,
             "total_registros": len(data),
             "data": data,
         }
+
+    def obtener_distrito_por_id(self, distrito_id: str) -> Dict[str, Any]:
+        from sqlalchemy.orm import selectinload
+
+        import models
+
+        district = (
+            self.district_repository.db.query(models.District)
+            .options(selectinload(models.District.municipio), selectinload(models.District.area))
+            .filter(models.District.id == distrito_id)
+            .one_or_none()
+        )
+        if not district:
+            raise HTTPException(status_code=404, detail="Distrito no encontrado")
+        return DistrictDetailResponseSchema.from_model(district).model_dump()

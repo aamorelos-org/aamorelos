@@ -43,10 +43,48 @@ class DistrictListResponseSchema(BaseModel):
     data: list[DistrictResponseSchema]
 
 
-class DistrictByStateListResponseSchema(DistrictListResponseSchema):
+class DistrictListItemSchema(BaseModel):
+    id: str
+    nombre: str
+    municipio: Optional[str] = None
+    vecinos: Optional[str] = None
+    area: Optional[str] = None
+    area_id: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_model(cls, d) -> "DistrictListItemSchema":
+        return cls(
+            id=str(d.id),
+            nombre=d.nombre,
+            municipio=getattr(getattr(d, "municipio", None), "nombre", None),
+            vecinos=d.vecinos,
+            area=getattr(getattr(d, "area", None), "nombre", None),
+            area_id=d.area_id,
+        )
+
+
+class DistrictByStateListResponseSchema(BaseModel):
+    ok: bool
     estado_id: str
     area_id: Optional[str] = None
-    data: list[DistrictByStateResponseSchema]
+    total_registros: int
+    data: list[DistrictListItemSchema]
+
+
+class DistrictDetailResponseSchema(DistrictResponseSchema):
+    municipio: Optional[str] = None
+    area: Optional[str] = None
+
+    @classmethod
+    def from_model(cls, d) -> "DistrictDetailResponseSchema":
+        base_data = DistrictResponseSchema.model_validate(d).model_dump()
+        base_data.update({
+            "municipio": getattr(getattr(d, "municipio", None), "nombre", None),
+            "area": getattr(getattr(d, "area", None), "nombre", None),
+        })
+        return cls.model_validate(base_data)
 
 
 # Backward compatibility
