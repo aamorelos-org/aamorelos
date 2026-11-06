@@ -15,6 +15,7 @@ from repositories.group_type_repository import GroupTypeRepository
 from repositories.language_repository import LanguageRepository
 from repositories.municipality_repository import MunicipalityRepository
 from repositories.reflexion_repository import ReflexionRepository
+from repositories.reflexion_diaria_repository import ReflexionDiariaRepository
 from repositories.region_repository import RegionRepository
 from repositories.state_repository import StateRepository
 from services.area_by_state_service import AreaByStateService
@@ -33,6 +34,7 @@ from services.group_type_service import GroupTypeService
 from services.language_service import LanguageService
 from services.login_rate_limiter import LoginRateLimiter
 from services.reflexion_service import ReflexionService
+from services.reflexion_diaria_service import ReflexionDiariaService
 from services.region_service import RegionService
 from services.state_service import StateService
 from services.token_service import InvalidAccessTokenError, TokenService
@@ -156,3 +158,7 @@ def get_reflexion_service(db: Session = Depends(get_db)) -> ReflexionService:
 
 def get_directorio_service(db: Session = Depends(get_db)) -> DirectorioService:
     return DirectorioService(DirectorioRepository(db))
+
+
+def get_reflexion_diaria_service(db: Session = Depends(get_db)) -> ReflexionDiariaService:
+    return ReflexionDiariaService(ReflexionDiariaRepository(db))

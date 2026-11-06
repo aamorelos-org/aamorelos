@@ -11,6 +11,7 @@ from models.group import Group
 from models.evento import Evento
 from models.reflexion import Reflexion
 from models.directorio import Directorio
+from models.reflexion_diaria import ReflexionDiaria
 from models.aniversario import Aniversario, AniversarioDia
 from models.usuario import Usuario, HistorialLogin
 
@@ -28,6 +29,7 @@ __all__ = [
     "Evento",
     "Reflexion",
     "Directorio",
+    "ReflexionDiaria",
     "Aniversario",
     "AniversarioDia",
     "Usuario",
