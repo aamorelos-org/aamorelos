@@ -1,5 +1,11 @@
-from typing import Any, Dict
-from dependencies import get_current_access_token, get_reflexion_service
+import logging
+from typing import Annotated, Any, Dict, Optional
+
+from dependencies import (
+    get_current_access_token,
+    get_notification_service,
+    get_reflexion_service,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from schemas.reflexion import (
     AdminReflexionCreateResponseSchema,
@@ -9,10 +15,16 @@ from schemas.reflexion import (
     ReflexionCreateSchema,
     ReflexionEstadoUpdateSchema,
 )
+from services.firebase_notification_service import (
+    REFLEXIONES_TOPIC,
+    FirebaseNotificationService,
+)
 from services.reflexion_service import (
     ReflexionNotFoundError,
     ReflexionService,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/v1/admin/reflexiones",
@@ -48,6 +60,56 @@ def get_admin_reflection(
         ) from exc
 
 
+def _notify_reflexiones_topic(
+    notification_service: Optional[FirebaseNotificationService],
+    payload: ReflexionCreateSchema,
+    result: Dict[str, Any],
+) -> None:
+    """Notifica al topic ``reflexiones`` sin bloquear el alta si FCM no está disponible.
+
+    Best-effort: si no hay servicio (fuera de prod) se omite; si el envío
+    falla solo se registra y el POST sigue devolviendo 201.
+    """
+    if notification_service is None:
+        return
+
+    data = result.get("data") or {}
+    # Se priorizan los valores persistidos y se cae al payload.
+    titulo = (data.get("titulo") or payload.titulo or "").strip()
+    subtitulo = (data.get("subtitulo") or "").strip()
+    reflexion_id = data.get("id")
+    slogan = data.get("slogan") or payload.slogan
+
+    title = titulo or "Nueva reflexión"
+    body = subtitulo or "Nueva reflexión disponible"
+
+    notification_data: Dict[str, str] = {
+        "tipo": "reflexion",
+        "slogan": str(slogan),
+        "reflexion_id": str(reflexion_id) if reflexion_id is not None else "",
+    }
+
+    try:
+        message_id = notification_service.send_topic(
+            REFLEXIONES_TOPIC,
+            title,
+            body,
+            data=notification_data,
+        )
+        logger.info(
+            "Notificación enviada al topic %s (reflexion %s, mensaje %s)",
+            REFLEXIONES_TOPIC,
+            reflexion_id,
+            message_id,
+        )
+    except Exception:
+        logger.exception(
+            "No se pudo enviar la notificación al topic %s (reflexion %s)",
+            REFLEXIONES_TOPIC,
+            reflexion_id,
+        )
+
+
 @router.post(
     "",
     response_model=AdminReflexionCreateResponseSchema,
@@ -75,8 +137,13 @@ def get_admin_reflection(
 def create_admin_reflection(
     payload: ReflexionCreateSchema,
     service: ReflexionService = Depends(get_reflexion_service),
+    notification_service: Annotated[
+        Optional[FirebaseNotificationService], Depends(get_notification_service)
+    ] = None,
 ) -> Dict[str, Any]:
-    return service.create_reflexion_admin(payload)
+    result = service.create_reflexion_admin(payload)
+    _notify_reflexiones_topic(notification_service, payload, result)
+    return result
 
 
 @router.post(

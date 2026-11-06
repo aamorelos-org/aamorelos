@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,6 +23,7 @@ class Settings(BaseSettings):
     login_lockout_window_minutes: int = Field(default=15, alias="LOGIN_LOCKOUT_WINDOW_MINUTES")
     login_ip_max_attempts: int = Field(default=20, alias="LOGIN_IP_MAX_ATTEMPTS")
     login_ip_window_minutes: int = Field(default=15, alias="LOGIN_IP_WINDOW_MINUTES")
+    firebase_credentials_json: Optional[str] = Field(default=None, alias="FIREBASE_CREDENTIALS_JSON")
 
     @property
     def database_url(self) -> str:

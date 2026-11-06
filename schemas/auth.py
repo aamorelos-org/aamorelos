@@ -13,6 +13,7 @@ class LoginRequestSchema(BaseModel):
 class TokenResponseSchema(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    nombre_completo: str | None = None
 
 
 class LoginResponseSchema(BaseModel):

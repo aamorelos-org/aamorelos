@@ -86,6 +86,7 @@ class AuthService:
             "data": {
                 "access_token": token,
                 "token_type": "bearer",
+                "nombre_completo": usuario.nombre_completo,
             },
         }
 

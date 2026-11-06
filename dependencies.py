@@ -26,6 +26,10 @@ from services.directorio_service import DirectorioService
 from services.district_by_state_service import DistrictByStateService
 from services.district_service import DistrictService
 from services.evento_service import EventoService
+from services.firebase_notification_service import (
+    FirebaseNotificationService,
+    get_firebase_notification_service,
+)
 from services.group_by_district_service import GroupByDistrictService
 from services.group_by_state_service import GroupByStateService
 from services.group_gender_service import GroupGenderService
@@ -162,3 +166,24 @@ def get_directorio_service(db: Session = Depends(get_db)) -> DirectorioService:
 
 def get_reflexion_diaria_service(db: Session = Depends(get_db)) -> ReflexionDiariaService:
     return ReflexionDiariaService(ReflexionDiariaRepository(db))
+
+
+def get_notification_service() -> Optional[FirebaseNotificationService]:
+    """Servicio de notificaciones Firebase, o None fuera de prod.
+
+    En prod reutiliza el singleton inicializado desde
+    FIREBASE_CREDENTIALS_JSON (RuntimeError si falta/malformada).
+    En cualquier otro entorno devuelve None sin fallar.
+    """
+    return get_firebase_notification_service()
+
+
+def get_required_notification_service() -> FirebaseNotificationService:
+    """Como get_notification_service, pero 503 si no hay Firebase (no-prod)."""
+    service = get_firebase_notification_service()
+    if service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Notificaciones no disponibles en este entorno",
+        )
+    return service

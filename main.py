@@ -27,16 +27,23 @@ from routers import (
 )
 from services.auth_service import InactiveUserError, InvalidCredentialsError
 from services.evento_service import EventoAlreadyExistsError, EventoPersistenceError
+from services.firebase_notification_service import get_firebase_notification_service
 from services.login_rate_limiter import TooManyAttemptsError
 from services.reflexion_service import ReflexionAlreadyExistsError, ReflexionPersistenceError
 from services.r2_storage_service import R2StorageError
 from services.token_service import InvalidAccessTokenError
+
+# Firebase: solo se inicializa en prod (APP_ENV/APP_EN=prod).
+# En cualquier otro entorno retorna None y la app levanta con normalidad.
+# En prod, si FIREBASE_CREDENTIALS_JSON falta o está malformada, lanza RuntimeError.
+firebase_notification_service = get_firebase_notification_service()
 
 app = FastAPI(
     title="API Geoadministrativa y de Grupos",
     description="API oficial para consultar la red de grupos",
     version="1.0.0",
 )
+app.state.firebase_notification_service = firebase_notification_service
 
 # ── Configuración CORS segura ──
 # En producción ALLOWED_ORIGINS debe listar explícitamente los dominios permitidos.
