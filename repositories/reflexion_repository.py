@@ -9,7 +9,7 @@ class ReflexionRepository:
         self.db = db
 
     def get_all(self) -> List[models.Reflexion]:
-        return self.db.query(models.Reflexion).order_by(models.Reflexion.id).all()
+        return self.db.query(models.Reflexion).order_by(models.Reflexion.id.desc()).all()
 
     def get_paginated(self, skip: int = 0, limit: int = 100) -> List[models.Reflexion]:
         if skip < 0:
@@ -20,7 +20,7 @@ class ReflexionRepository:
             limit = 500
         return (
             self.db.query(models.Reflexion)
-            .order_by(models.Reflexion.id)
+            .order_by(models.Reflexion.id.desc())
             .offset(skip)
             .limit(limit)
             .all()

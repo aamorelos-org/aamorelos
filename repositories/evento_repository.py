@@ -10,7 +10,7 @@ class EventoRepository:
         self.db = db
 
     def get_all(self) -> List[models.Evento]:
-        return self.db.query(models.Evento).order_by(models.Evento.id).all()
+        return self.db.query(models.Evento).order_by(models.Evento.id.desc()).all()
 
     def get_paginated(self, skip: int = 0, limit: int = 100) -> List[models.Evento]:
         if skip < 0:
@@ -21,7 +21,7 @@ class EventoRepository:
             limit = 500
         return (
             self.db.query(models.Evento)
-            .order_by(models.Evento.id)
+            .order_by(models.Evento.id.desc())
             .offset(skip)
             .limit(limit)
             .all()
