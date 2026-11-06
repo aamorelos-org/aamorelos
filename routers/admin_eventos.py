@@ -55,8 +55,9 @@ def _notify_eventos_topic(
     evento_id = data.get("id")
     slogan = data.get("slogan") or payload.slogan
     tipo = data.get("tipo") or payload.tipo
+    imagen = (data.get("imagen") or "").strip() or f"https://images.aamorelos.org/events/{slogan}.webp"
 
-    title = titulo or "Nuevo evento"
+    title = f"Nuevo evento: {titulo}" if titulo else "Nuevo evento"
     body = subtitulo or "Nuevo evento disponible"
 
     # Tipo (informativo/invitacion), slogan y evento_id en el payload FCM.
@@ -73,6 +74,7 @@ def _notify_eventos_topic(
             title,
             body,
             data=notification_data,
+            image=imagen,
         )
         logger.info(
             "Notificación enviada al topic %s (evento %s, mensaje %s)",

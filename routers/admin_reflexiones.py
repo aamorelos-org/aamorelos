@@ -79,8 +79,9 @@ def _notify_reflexiones_topic(
     subtitulo = (data.get("subtitulo") or "").strip()
     reflexion_id = data.get("id")
     slogan = data.get("slogan") or payload.slogan
+    imagen = (data.get("imagen") or "").strip() or f"https://images.aamorelos.org/reflections/{slogan}.webp"
 
-    title = titulo or "Nueva reflexión"
+    title = f"Nueva reflexión: {titulo}" if titulo else "Nueva reflexión"
     body = subtitulo or "Nueva reflexión disponible"
 
     notification_data: Dict[str, str] = {
@@ -95,6 +96,7 @@ def _notify_reflexiones_topic(
             title,
             body,
             data=notification_data,
+            image=imagen,
         )
         logger.info(
             "Notificación enviada al topic %s (reflexion %s, mensaje %s)",

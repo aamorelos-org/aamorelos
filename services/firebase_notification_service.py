@@ -173,6 +173,7 @@ class FirebaseNotificationService:
         title: str,
         body: str,
         data: Optional[Dict[str, str]] = None,
+        image: Optional[str] = None,
     ) -> str:
         """Envía una notificación push a un topic FCM.
 
@@ -181,10 +182,13 @@ class FirebaseNotificationService:
         if not topic or not str(topic).strip():
             raise ValueError("El topic FCM no puede estar vacío")
 
+        image_url = str(image).strip() if image else None
         messaging = self._messaging()
         message = messaging.Message(
             data={k: str(v) for k, v in (data or {}).items()},
-            notification=messaging.Notification(title=title, body=body),
+            notification=messaging.Notification(
+                title=title, body=body, image=image_url
+            ),
             topic=topic.strip(),
         )
         try:
