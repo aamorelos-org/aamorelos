@@ -5,7 +5,13 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from core.images import decode_base64_image
 from repositories.reflexion_repository import ReflexionRepository
-from schemas.reflexion import ReflexionResponseSchema, ReflexionCreateSchema, ReflexionListItemSchema
+from schemas.reflexion import (
+    AdminReflexionListItemSchema,
+    AdminReflexionResponseSchema,
+    ReflexionResponseSchema,
+    ReflexionCreateSchema,
+    ReflexionListItemSchema,
+)
 from services.r2_storage_service import R2StorageService
 
 logger = logging.getLogger(__name__)
@@ -55,6 +61,18 @@ class ReflexionService:
             "data": data,
         }
 
+    def get_all_reflexiones_admin(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        reflexiones = self.repository.get_paginated_admin(skip=skip, limit=limit)
+        total = self.repository.count_admin()
+        data = [AdminReflexionListItemSchema.model_validate(r).model_dump() for r in reflexiones]
+        return {
+            "ok": True,
+            "total_registros": total,
+            "skip": skip,
+            "limit": limit,
+            "data": data,
+        }
+
     def get_reflexion_by_identifier(self, identifier: str) -> Dict[str, Any]:
         cleaned = identifier.strip()
         if not cleaned:
@@ -72,7 +90,24 @@ class ReflexionService:
             "data": ReflexionResponseSchema.model_validate(reflexion).model_dump(),
         }
 
-    def create_reflexion(self, payload: ReflexionCreateSchema) -> Dict[str, Any]:
+    def get_reflexion_by_identifier_admin(self, identifier: str) -> Dict[str, Any]:
+        cleaned = identifier.strip()
+        if not cleaned:
+            raise ReflexionNotFoundError()
+
+        reflexion = self.repository.get_by_slogan(cleaned)
+        if reflexion is None and cleaned.isdigit():
+            reflexion = self.repository.get_by_id(int(cleaned))
+
+        if reflexion is None:
+            raise ReflexionNotFoundError()
+
+        return {
+            "ok": True,
+            "data": AdminReflexionResponseSchema.model_validate(reflexion).model_dump(),
+        }
+
+    def _persist_reflexion(self, payload: ReflexionCreateSchema):
         slogan = payload.slogan
 
         if self.repository.get_by_slogan(slogan) is not None:
@@ -111,9 +146,59 @@ class ReflexionService:
             logger.exception("Error inesperado al guardar la reflexión %s", slogan)
             raise
 
+        return reflexion
+
+    def create_reflexion(self, payload: ReflexionCreateSchema) -> Dict[str, Any]:
+        reflexion = self._persist_reflexion(payload)
+
         data = ReflexionResponseSchema.model_validate(reflexion).model_dump()
         return {
             "ok": True,
             "mensaje": "Reflexión creada correctamente",
             "data": data,
+        }
+
+    def create_reflexion_admin(self, payload: ReflexionCreateSchema) -> Dict[str, Any]:
+        reflexion = self._persist_reflexion(payload)
+
+        data = AdminReflexionResponseSchema.model_validate(reflexion).model_dump()
+        return {
+            "ok": True,
+            "mensaje": "Reflexión creada correctamente",
+            "data": data,
+        }
+
+    def actualizar_estado_reflexion(self, identifier: str, es_activo: str) -> Dict[str, Any]:
+        cleaned = identifier.strip()
+        if not cleaned:
+            raise ReflexionNotFoundError()
+
+        reflexion = self.repository.get_by_slogan(cleaned)
+        if reflexion is None and cleaned.isdigit():
+            reflexion = self.repository.get_by_id(int(cleaned))
+
+        if reflexion is None:
+            raise ReflexionNotFoundError()
+
+        mensaje = (
+            "Reflexión activada correctamente" if es_activo == "S" else "Reflexión desactivada correctamente"
+        )
+
+        try:
+            actualizada = self.repository.update_es_activo(reflexion.id, es_activo)
+        except IntegrityError as exc:
+            self.repository.db.rollback()
+            raise ReflexionPersistenceError("No se pudo actualizar la reflexión") from exc
+        except SQLAlchemyError as exc:
+            self.repository.db.rollback()
+            logger.exception("No se pudo actualizar el estado de la reflexión %s", cleaned)
+            raise ReflexionPersistenceError("No se pudo actualizar la reflexión") from exc
+
+        if actualizada is None:
+            raise ReflexionNotFoundError()
+
+        return {
+            "ok": True,
+            "mensaje": mensaje,
+            "data": AdminReflexionResponseSchema.model_validate(actualizada).model_dump(),
         }

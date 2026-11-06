@@ -8,6 +8,9 @@ from sqlalchemy.orm import selectinload
 from core.images import decode_base64_image
 from repositories.evento_repository import EventoRepository
 from schemas.evento import (
+    AdminEventoDetailDataSchema,
+    AdminEventoListItemSchema,
+    AdminEventoResponseSchema,
     AniversarioCreateSchema,
     AniversarioDiaSchema,
     AniversarioSchema,
@@ -98,6 +101,18 @@ class EventoService:
             "data": data,
         }
 
+    def get_all_eventos_admin(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        eventos = self.repository.get_paginated_admin(skip=skip, limit=limit)
+        total = self.repository.count_admin()
+        data = [AdminEventoListItemSchema.model_validate(e).model_dump() for e in eventos]
+        return {
+            "ok": True,
+            "total_registros": total,
+            "skip": skip,
+            "limit": limit,
+            "data": data,
+        }
+
     def get_evento_by_id(self, evento_id: int) -> Dict[str, Any]:
         evento = self.repository.get_by_id(evento_id)
         if not evento:
@@ -112,7 +127,21 @@ class EventoService:
             "data": data,
         }
 
-    def create_evento(self, payload: EventoCreateSchema) -> Dict[str, Any]:
+    def get_evento_by_id_admin(self, evento_id: int) -> Dict[str, Any]:
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+        data = AdminEventoDetailDataSchema(
+            **AdminEventoResponseSchema.model_validate(evento).model_dump(),
+            aniversario=_aniversario_payload(evento.aniversario),
+        ).model_dump()
+        return {
+            "ok": True,
+            "data": data,
+        }
+
+    def _persist_evento(self, payload: EventoCreateSchema):
         slogan = payload.slogan
 
         if self.repository.get_by_slogan(slogan) is not None:
@@ -176,6 +205,11 @@ class EventoService:
             raise
 
         evento = self.repository.get_by_id(evento.id)
+        return evento
+
+    def create_evento(self, payload: EventoCreateSchema) -> Dict[str, Any]:
+        evento = self._persist_evento(payload)
+
         data = EventoDetailDataSchema(
             **EventoResponseSchema.model_validate(evento).model_dump(),
             aniversario=_aniversario_payload(evento.aniversario),
@@ -183,5 +217,44 @@ class EventoService:
         return {
             "ok": True,
             "mensaje": "Evento creado correctamente",
+            "data": data,
+        }
+
+    def create_evento_admin(self, payload: EventoCreateSchema) -> Dict[str, Any]:
+        evento = self._persist_evento(payload)
+
+        data = AdminEventoDetailDataSchema(
+            **AdminEventoResponseSchema.model_validate(evento).model_dump(),
+            aniversario=_aniversario_payload(evento.aniversario),
+        ).model_dump()
+        return {
+            "ok": True,
+            "mensaje": "Evento creado correctamente",
+            "data": data,
+        }
+
+    def actualizar_estado_evento(self, evento_id: int, es_activo: str) -> Dict[str, Any]:
+        mensaje = "Evento activado correctamente" if es_activo == "S" else "Evento desactivado correctamente"
+
+        try:
+            evento = self.repository.update_es_activo(evento_id, es_activo)
+        except IntegrityError as exc:
+            self.repository.db.rollback()
+            raise EventoPersistenceError("No se pudo actualizar el evento") from exc
+        except SQLAlchemyError as exc:
+            self.repository.db.rollback()
+            logger.exception("No se pudo actualizar el estado del evento %s", evento_id)
+            raise EventoPersistenceError("No se pudo actualizar el evento") from exc
+
+        if evento is None:
+            raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+        data = AdminEventoDetailDataSchema(
+            **AdminEventoResponseSchema.model_validate(evento).model_dump(),
+            aniversario=_aniversario_payload(evento.aniversario),
+        ).model_dump()
+        return {
+            "ok": True,
+            "mensaje": mensaje,
             "data": data,
         }

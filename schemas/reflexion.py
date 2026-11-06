@@ -73,3 +73,69 @@ class ReflexionCreateResponseSchema(BaseModel):
     ok: bool
     mensaje: str
     data: ReflexionResponseSchema
+
+
+class AdminReflexionListItemSchema(BaseModel):
+    id: int
+    slogan: str
+    titulo: str
+    subtitulo: str
+    imagen: str
+    alt: str
+    url: str
+    es_activo: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminReflexionResponseSchema(BaseModel):
+    id: int
+    slogan: str
+    titulo: str
+    subtitulo: str
+    imagen: str
+    alt: str
+    url: str
+    descripcion: str
+    es_activo: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminReflexionListResponseSchema(BaseModel):
+    ok: bool
+    total_registros: int
+    skip: int
+    limit: int
+    data: list[AdminReflexionListItemSchema]
+
+
+class AdminReflexionDetailResponseSchema(BaseModel):
+    ok: bool
+    data: AdminReflexionResponseSchema
+
+
+class AdminReflexionCreateResponseSchema(BaseModel):
+    ok: bool
+    mensaje: str
+    data: AdminReflexionResponseSchema
+
+
+class ReflexionEstadoUpdateSchema(BaseModel):
+    es_activo: str
+
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("es_activo")
+    @classmethod
+    def validate_es_activo(cls, value: str) -> str:
+        cleaned = value.strip().upper()
+        if cleaned not in {"S", "N"}:
+            raise ValueError("es_activo debe ser 'S' o 'N'")
+        return cleaned
+
+
+class AdminReflexionStatusResponseSchema(BaseModel):
+    ok: bool
+    mensaje: str
+    data: AdminReflexionResponseSchema

@@ -130,3 +130,65 @@ class EventoCreateResponseSchema(BaseModel):
     ok: bool
     mensaje: str
     data: EventoDetailDataSchema
+
+
+class AdminEventoListItemSchema(BaseModel):
+    id: int
+    tipo: str
+    slogan: str
+    url: Optional[str] = None
+    titulo: str
+    subtitulo: Optional[str] = None
+    imagen: str
+    alt: Optional[str] = None
+    pie: Optional[str] = None
+    es_activo: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminEventoResponseSchema(AdminEventoListItemSchema):
+    frases: Optional[Any] = None
+
+
+class AdminEventoDetailDataSchema(AdminEventoResponseSchema):
+    aniversario: Optional[AniversarioSchema] = None
+
+
+class AdminEventoListResponseSchema(BaseModel):
+    ok: bool
+    total_registros: int
+    skip: int
+    limit: int
+    data: list[AdminEventoListItemSchema]
+
+
+class AdminEventoDetailResponseSchema(BaseModel):
+    ok: bool
+    data: AdminEventoDetailDataSchema
+
+
+class AdminEventoCreateResponseSchema(BaseModel):
+    ok: bool
+    mensaje: str
+    data: AdminEventoDetailDataSchema
+
+
+class EventoEstadoUpdateSchema(BaseModel):
+    es_activo: str
+
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("es_activo")
+    @classmethod
+    def validate_es_activo(cls, value: str) -> str:
+        cleaned = value.strip().upper()
+        if cleaned not in {"S", "N"}:
+            raise ValueError("es_activo debe ser 'S' o 'N'")
+        return cleaned
+
+
+class AdminEventoStatusResponseSchema(BaseModel):
+    ok: bool
+    mensaje: str
+    data: AdminEventoDetailDataSchema

@@ -8,6 +8,8 @@ from config import settings
 from database.database import engine
 from core.images import ImageTooLargeError
 from routers import (
+    admin_eventos,
+    admin_reflexiones,
     areas,
     auth,
     countries,
@@ -162,6 +164,8 @@ api_router.include_router(group_types.router)
 api_router.include_router(groups.router)
 api_router.include_router(eventos.router)
 api_router.include_router(reflections.router)
+api_router.include_router(admin_reflexiones.router)
+api_router.include_router(admin_eventos.router)
 api_router.include_router(reflexiones_diarias.router)
 api_router.include_router(directorio.router)
 
