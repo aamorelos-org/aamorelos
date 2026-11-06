@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from repositories.area_repository import AreaRepository
 from repositories.auth_repository import AuthRepository
 from repositories.country_repository import CountryRepository
+from repositories.directorio_repository import DirectorioRepository
 from repositories.district_repository import DistrictRepository
 from repositories.evento_repository import EventoRepository
 from repositories.group_gender_repository import GroupGenderRepository
@@ -20,6 +21,7 @@ from services.area_by_state_service import AreaByStateService
 from services.area_service import AreaService
 from services.auth_service import AuthService
 from services.country_service import CountryService
+from services.directorio_service import DirectorioService
 from services.district_by_state_service import DistrictByStateService
 from services.district_service import DistrictService
 from services.evento_service import EventoService
@@ -150,3 +152,7 @@ def get_evento_service(db: Session = Depends(get_db)) -> EventoService:
 
 def get_reflexion_service(db: Session = Depends(get_db)) -> ReflexionService:
     return ReflexionService(ReflexionRepository(db))
+
+
+def get_directorio_service(db: Session = Depends(get_db)) -> DirectorioService:
+    return DirectorioService(DirectorioRepository(db))

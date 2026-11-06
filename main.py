@@ -11,6 +11,7 @@ from routers import (
     areas,
     auth,
     countries,
+    directorio,
     districts,
     eventos,
     group_genders,
@@ -160,6 +161,7 @@ api_router.include_router(group_types.router)
 api_router.include_router(groups.router)
 api_router.include_router(eventos.router)
 api_router.include_router(reflections.router)
+api_router.include_router(directorio.router)
 
 app.include_router(api_router)
 

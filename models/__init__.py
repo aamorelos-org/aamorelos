@@ -10,6 +10,7 @@ from models.group_gender import GroupGender
 from models.group import Group
 from models.evento import Evento
 from models.reflexion import Reflexion
+from models.directorio import Directorio
 from models.aniversario import Aniversario, AniversarioDia
 from models.usuario import Usuario, HistorialLogin
 
@@ -26,6 +27,7 @@ __all__ = [
     "Group",
     "Evento",
     "Reflexion",
+    "Directorio",
     "Aniversario",
     "AniversarioDia",
     "Usuario",
